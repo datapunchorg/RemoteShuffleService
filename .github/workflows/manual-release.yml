@@ -4,23 +4,85 @@
 name: Manually release
 
 on:
+  release:
+    types: [created]
   workflow_dispatch:
     inputs:
       name:
         description: 'Release Name'
         required: true
         default: '0.0.0'
-        
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.11
-    - name: Build with Maven
-      run: mvn -B package -Pclient -DskipTests --file pom.xml
+      - uses: actions/checkout@v2
+
+        # https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven
+      - name: Set up JDK and Maven Central Repository
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: Build and publish client jar files to Maven repository
+        run: mvn --batch-mode clean deploy -Pclient -DskipTests --file pom.xml
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
+      - name: Set up Java for publishing to GitHub Packages
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Publish to GitHub Packages
+        run: mvn --batch-mode deploy -Pclient -DskipTests --file pom.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish server jar files to Maven repository
+        run: |
+          mvn --batch-mode clean deploy -Pserver -DskipTests --file pom.xml
+          mkdir -p target/server-jar-file
+          cp `ls target/*.jar | grep -v sources.jar | grep -v original` target/server-jar-file/
+          mv target/server-jar-file/remote-shuffle-service-server-*.jar target/remote-shuffle-service-server.jar
+          echo Files inside target/
+          ls -l target/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
