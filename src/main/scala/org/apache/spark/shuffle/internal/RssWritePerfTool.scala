@@ -23,18 +23,16 @@ import java.util
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-import com.uber.rss.{StreamServer, StreamServerConfig}
-import com.uber.rss.clients.{MultiServerAsyncWriteClient, MultiServerSyncWriteClient, ServerReplicationGroupUtil, ShuffleDataWriter, ShuffleWriteConfig}
-import com.uber.rss.common.{AppMapId, AppTaskAttemptId, ServerDetail, ServerList}
-import com.uber.rss.metadata.ServiceRegistry
-import com.uber.rss.storage.ShuffleFileStorage
 import org.apache.commons.lang3.StringUtils
+
 import org.apache.spark.{MapOutputTrackerMaster, ShuffleDependency, SparkConf, SparkContext, SparkEnv}
 import org.apache.spark.executor.ShuffleWriteMetrics
 import org.apache.spark.internal.Logging
-import com.uber.rss.StreamServer
-import com.uber.rss.clients.MultiServerAsyncWriteClient
+import com.uber.rss.{StreamServer, StreamServerConfig}
+import com.uber.rss.clients.{MultiServerAsyncWriteClient, MultiServerSyncWriteClient, ServerReplicationGroupUtil, ShuffleDataWriter, ShuffleWriteConfig}
 import com.uber.rss.common._
+import com.uber.rss.metadata.ServiceRegistry
+import com.uber.rss.storage.ShuffleFileStorage
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.shuffle._
 
@@ -67,10 +65,10 @@ class RssWritePerfTool extends ShuffleWritePerfTool with Logging {
   private var writeClientThreads = 4
 
   override def createShuffleWriter(
-      shuffleId: Int,
-      shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
-      appMapId: AppMapId,
-      taskAttemptId: Long):
+                                    shuffleId: Int,
+                                    shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
+                                    appMapId: AppMapId,
+                                    taskAttemptId: Long):
   ShuffleWriter[Array[Byte], Array[Byte]] = {
     val shuffleWriteConfig = new ShuffleWriteConfig(numSplits.toShort)
     val partitionFanout = 1
@@ -144,7 +142,7 @@ class RssWritePerfTool extends ShuffleWritePerfTool with Logging {
     sparkContext = new SparkContext(sparkConf)
 
     mapOutputTrackerMaster = SparkEnv.get.mapOutputTracker.asInstanceOf[MapOutputTrackerMaster]
-    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps, numPartitions)
+    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps)
 
     val rdd = sparkContext.parallelize(1 to numMaps, numMaps)
       .map(t => (t.toString.getBytes(StandardCharsets.UTF_8)

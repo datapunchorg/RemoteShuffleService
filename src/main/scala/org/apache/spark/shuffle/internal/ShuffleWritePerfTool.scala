@@ -23,9 +23,10 @@ import java.util.Random
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConverters._
+
 import com.google.common.primitives.Longs
-import com.uber.rss.common.{AppMapId, AppShuffleId}
 import org.apache.commons.lang3.StringUtils
+
 import org.apache.spark.{MapOutputTrackerMaster, Partitioner, ShuffleDependency, SparkConf, SparkContext, SparkEnv}
 import org.apache.spark.internal.Logging
 import com.uber.rss.common._
@@ -85,11 +86,11 @@ abstract class ShuffleWritePerfTool extends Logging {
   private val taskAttemptIdSeed = new AtomicLong;
 
   def createShuffleWriter(
-      shuffleId: Int,
-      shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
-      appMapId: AppMapId,
-      taskAttemptId: Long):
-    ShuffleWriter[Array[Byte], Array[Byte]]
+                           shuffleId: Int,
+                           shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
+                           appMapId: AppMapId,
+                           taskAttemptId: Long):
+  ShuffleWriter[Array[Byte], Array[Byte]]
 
   def setup(): Unit = {
     this.endMapId = this.startMapId + numMaps - 1
@@ -105,7 +106,7 @@ abstract class ShuffleWritePerfTool extends Logging {
     sparkContext = new SparkContext(sparkConf)
 
     mapOutputTrackerMaster = SparkEnv.get.mapOutputTracker.asInstanceOf[MapOutputTrackerMaster]
-    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps, numPartitions)
+    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps)
 
     val rdd = sparkContext.parallelize(1 to numMaps, numMaps)
       .map(t => (t.toString.getBytes(StandardCharsets.UTF_8)

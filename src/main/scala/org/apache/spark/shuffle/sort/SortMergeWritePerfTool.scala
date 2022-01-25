@@ -19,7 +19,6 @@ package org.apache.spark.shuffle.sort
 
 import java.util
 
-import com.uber.rss.common.AppMapId
 import org.apache.spark.{ShuffleDependency, SparkConf}
 import org.apache.spark.internal.Logging
 import com.uber.rss.common._
@@ -30,12 +29,13 @@ import org.apache.spark.shuffle.sort.io.LocalDiskShuffleExecutorComponents
 class SortMergeWritePerfTool extends ShuffleWritePerfTool with Logging {
 
   override def createShuffleWriter(
-      shuffleId: Int,
-      shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
-      appMapId: AppMapId,
-      taskAttemptId: Long):
-    ShuffleWriter[Array[Byte], Array[Byte]] = {
+                                    shuffleId: Int,
+                                    shuffleDependency: ShuffleDependency[Array[Byte], Array[Byte], Array[Byte]],
+                                    appMapId: AppMapId,
+                                    taskAttemptId: Long):
+  ShuffleWriter[Array[Byte], Array[Byte]] = {
     val sparkConf = new SparkConf(false)
+    val shuffleBlockResolver = new IndexShuffleBlockResolver(sparkConf)
     val handle = new BaseShuffleHandle[Array[Byte], Array[Byte], Array[Byte]](
       shuffleId,
       shuffleDependency)
@@ -44,6 +44,7 @@ class SortMergeWritePerfTool extends ShuffleWritePerfTool with Logging {
       "1",
       new util.HashMap[String, String]())
     new SortShuffleWriter(
+      shuffleBlockResolver = shuffleBlockResolver,
       handle = handle,
       mapId = appMapId.getMapId,
       context = new MockTaskContext(0, 0, taskAttemptId),

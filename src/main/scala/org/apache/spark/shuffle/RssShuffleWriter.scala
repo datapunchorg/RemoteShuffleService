@@ -203,10 +203,6 @@ class RssShuffleWriter[K, V, C](
     }
   }
 
-  override def getPartitionLengths(): Array[Long] = {
-    Array.fill[Long](partitioner.numPartitions)(0L)
-  }
-
   private def closeWriteClientAsync() = {
     CompletableFuture.runAsync(new Runnable {
       override def run(): Unit = {

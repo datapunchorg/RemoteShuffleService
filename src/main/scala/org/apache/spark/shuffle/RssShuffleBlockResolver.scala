@@ -18,8 +18,7 @@
 package org.apache.spark.shuffle
 
 import org.apache.spark.network.buffer.ManagedBuffer
-import org.apache.spark.network.shuffle.MergedBlockMeta
-import org.apache.spark.storage.{BlockId, ShuffleMergedBlockId}
+import org.apache.spark.storage.BlockId
 
 class RssShuffleBlockResolver extends ShuffleBlockResolver {
   override def getBlockData(blockId: BlockId, dirs: Option[Array[String]]): ManagedBuffer = {
@@ -27,21 +26,5 @@ class RssShuffleBlockResolver extends ShuffleBlockResolver {
   }
 
   override def stop(): Unit = {
-  }
-
-  /**
-   * Retrieve the data for the specified merged shuffle block as multiple chunks.
-   */
-  override def getMergedBlockData(blockId: ShuffleMergedBlockId, dirs: Option[Array[String]]):
-    Seq[ManagedBuffer] = {
-    Seq()
-  }
-
-  /**
-   * Retrieve the meta data for the specified merged shuffle block.
-   */
-  override def getMergedBlockMeta(blockId: ShuffleMergedBlockId, dirs: Option[Array[String]]):
-    MergedBlockMeta = {
-    throw new UnsupportedOperationException("getMergedBlockMeta not supported")
   }
 }

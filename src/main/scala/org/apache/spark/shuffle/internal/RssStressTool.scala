@@ -24,21 +24,19 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
+
+import org.apache.commons.lang3.StringUtils
+
+import org.apache.spark.{HashPartitioner, MapOutputTrackerMaster, ShuffleDependency, SparkConf, SparkContext, SparkEnv}
+import org.apache.spark.executor.ShuffleWriteMetrics
+import org.apache.spark.internal.Logging
 import com.uber.rss.{StreamServer, StreamServerConfig}
 import com.uber.rss.clients.{MultiServerAsyncWriteClient, MultiServerSyncWriteClient, ServerReplicationGroupUtil, ShuffleDataWriter, ShuffleWriteConfig}
 import com.uber.rss.common.{AppMapId, AppShuffleId, AppTaskAttemptId, ServerDetail, ServerList}
 import com.uber.rss.metadata.ServiceRegistry
 import com.uber.rss.storage.ShuffleFileStorage
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
-import org.apache.commons.lang3.StringUtils
-import org.apache.spark.{HashPartitioner, MapOutputTrackerMaster, ShuffleDependency, SparkConf, SparkContext, SparkEnv}
-import org.apache.spark.executor.ShuffleWriteMetrics
-import org.apache.spark.internal.Logging
-import com.uber.rss.StreamServer
-import com.uber.rss.clients.MultiServerAsyncWriteClient
-import com.uber.rss.common.ServerList
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.shuffle._
 
@@ -147,7 +145,7 @@ class RssStressTool extends Logging {
     sparkContext = new SparkContext(sparkConf)
 
     mapOutputTrackerMaster = SparkEnv.get.mapOutputTracker.asInstanceOf[MapOutputTrackerMaster]
-    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps, numPartitions)
+    mapOutputTrackerMaster.registerShuffle(appShuffleId.getShuffleId, numMaps)
 
     val rdd = sparkContext.parallelize(1 to 100, numMaps)
       .map(t => (t.toString -> t.toString))

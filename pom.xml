@@ -36,12 +36,13 @@
 
     <properties>
         <projectArtifactId>remote-shuffle-service</projectArtifactId>
+        <clientJarSuffix>spark31</clientJarSuffix>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <hadoop.version>2.7.1</hadoop.version>
-        <spark.version>3.2.0</spark.version>
+        <spark.version>3.1.1</spark.version>
         <scala.version>2.12.10</scala.version>
         <commons.httpclient.version>4.5.13</commons.httpclient.version>
         <scala.compat.version>2.12</scala.compat.version>
@@ -497,7 +498,7 @@
             <!-- Not strictly needed, but useful to confirm the manually specified shaded client dependencies -->
             <id>client</id>
             <properties>
-                <projectArtifactId>remote-shuffle-service-client</projectArtifactId>
+                <projectArtifactId>remote-shuffle-service-client-${clientJarSuffix}</projectArtifactId>
                 <dependency.scope>provided</dependency.scope>
             </properties>
             <build>
