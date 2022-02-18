@@ -23,8 +23,8 @@ helm install remote-shuffle-service charts/remote-shuffle-service --namespace re
 Use following pre-built Spark images with embedded Remote Shuffle Service client jar file:
 
 ```
-ghcr.io/datapunchorg/spark:spark-3.2-1642867779
-ghcr.io/datapunchorg/spark:pyspark-3.2-1642867779
+ghcr.io/datapunchorg/spark:spark-3.1-1643212945
+ghcr.io/datapunchorg/spark:pyspark-3.1-1643212945
 ```
 
 Add configure to your Spark application like following:
