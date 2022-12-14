@@ -20,10 +20,9 @@ package org.apache.spark.shuffle
 import java.util
 import java.util.Random
 import java.util.function.Supplier
-
 import com.uber.rss.RssBuildInfo
 import com.uber.rss.clients.{MultiServerAsyncWriteClient, MultiServerHeartbeatClient, MultiServerSyncWriteClient, MultiServerWriteClient, PooledWriteClientFactory, ServerConnectionStringCache, ServerConnectionStringResolver, ServerReplicationGroupUtil, ShuffleWriteConfig}
-import com.uber.rss.common.{AppShuffleId, AppTaskAttemptId, ServerDetail, ServerList}
+import com.uber.rss.common.{AppShuffleId, AppTaskAttemptId, Compression, ServerDetail, ServerList}
 import com.uber.rss.exceptions.{RssException, RssInvalidStateException, RssNoServerAvailableException, RssServerResolveException}
 import com.uber.rss.metadata.{ServerSequenceServiceRegistry, ServiceRegistry, ServiceRegistryUtils, StandaloneServiceRegistryClient}
 import com.uber.rss.metrics.M3Stats
@@ -33,7 +32,6 @@ import scala.collection.JavaConverters
 import org.apache.spark._
 import org.apache.spark.internal.Logging
 import com.uber.rss.clients.PooledWriteClientFactory
-import com.uber.rss.common.ServerList
 import com.uber.rss.exceptions.RssServerResolveException
 import com.uber.rss.metadata.ServiceRegistryUtils
 import com.uber.rss.util.RetryUtils
@@ -294,11 +292,18 @@ class RssShuffleManager(conf: SparkConf) extends ShuffleManager with Logging {
               try {
                 writeClient.connect()
 
+                val compressionLevel = if (Compression.COMPRESSION_CODEC_ZSTD.equals(RssOpts.compression)) {
+                  conf.get(RssOpts.zstdCompressionLevel)
+                } else {
+                  0
+                }
                 new RssShuffleWriter(
                   new ServerList(rssShuffleHandle.rssServers.map(_.toServerDetail()).toArray),
                   writeClient,
                   mapInfo,
                   serializer,
+                  conf.get(RssOpts.compression),
+                  CompressionOptions(compressionLevel),
                   bufferOptions,
                   rssShuffleHandle.dependency,
                   metrics)
@@ -340,6 +345,7 @@ class RssShuffleManager(conf: SparkConf) extends ShuffleManager with Logging {
       startPartition = startPartition,
       endPartition = endPartition,
       serializer = serializer,
+      decompression = conf.get(RssOpts.compression),
       context = context,
       shuffleDependency = rssShuffleHandle.dependency,
       rssServers = rssServers,

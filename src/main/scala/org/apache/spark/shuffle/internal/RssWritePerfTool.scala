@@ -102,6 +102,8 @@ class RssWritePerfTool extends ShuffleWritePerfTool with Logging {
       writeClient = writeClient,
       mapInfo = new AppTaskAttemptId(appMapId, taskAttemptId),
       serializer = new KryoSerializer(sparkConf),
+      compression = Compression.COMPRESSION_CODEC_LZ4,
+      compressionOptions = CompressionOptions(),
       bufferOptions = BufferManagerOptions(writerBufferSize,
         256 * 1024 * 1024,
         writerBufferSpill,

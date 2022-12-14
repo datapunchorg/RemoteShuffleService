@@ -23,10 +23,9 @@ import java.util.Random
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
-
 import com.uber.rss.{StreamServer, StreamServerConfig}
 import com.uber.rss.clients.{MultiServerAsyncWriteClient, MultiServerSyncWriteClient, ServerReplicationGroupUtil, ShuffleDataWriter, ShuffleWriteConfig}
-import com.uber.rss.common.{AppMapId, AppShuffleId, AppTaskAttemptId, ServerDetail, ServerList}
+import com.uber.rss.common.{AppMapId, AppShuffleId, AppTaskAttemptId, Compression, ServerDetail, ServerList}
 import com.uber.rss.metadata.ServiceRegistry
 import com.uber.rss.storage.ShuffleFileStorage
 
@@ -38,7 +37,6 @@ import org.apache.spark.executor.ShuffleWriteMetrics
 import org.apache.spark.internal.Logging
 import com.uber.rss.StreamServer
 import com.uber.rss.clients.MultiServerAsyncWriteClient
-import com.uber.rss.common.ServerList
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.shuffle._
 
@@ -340,6 +338,8 @@ class RssStressTool extends Logging {
       writeClient = writeClient,
       mapInfo = new AppTaskAttemptId(appMapId, taskAttemptId),
       serializer = new KryoSerializer(sparkConf),
+      compressionOptions = CompressionOptions(),
+      compression = Compression.COMPRESSION_CODEC_LZ4,
       bufferOptions = BufferManagerOptions(writerBufferSize,
         256 * 1024 * 1024,
         writerBufferSpill,
@@ -377,6 +377,7 @@ class RssStressTool extends Logging {
       startPartition = readPartitionId,
       endPartition = readPartitionId + 1,
       serializer = shuffleDependency.serializer,
+      decompression = Compression.COMPRESSION_CODEC_LZ4,
       context = new MockTaskContext(1, 0, taskAttemptIdSeed.incrementAndGet()),
       shuffleDependency = shuffleDependency,
       rssServers = new ServerList(serverDetails),

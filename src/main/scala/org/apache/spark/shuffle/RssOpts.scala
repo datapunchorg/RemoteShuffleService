@@ -192,4 +192,14 @@ object RssOpts {
       .doc("the server hosts to exclude, separated by comma.")
       .stringConf
       .createWithDefault("")
+  val compression: ConfigEntry[String] =
+    ConfigBuilder("spark.shuffle.rss.compress")
+      .doc("type of compression for shuffle data, supported: lz4, zstd")
+      .stringConf
+      .createWithDefault("lz4")
+  val zstdCompressionLevel: ConfigEntry[Int] =
+    ConfigBuilder("spark.shuffle.rss.compress.zstd.level")
+      .doc("level of zstd compression")
+      .intConf
+      .createWithDefault(1)
 }

@@ -42,6 +42,7 @@ class BlockDownloaderPartitionRangeRecordIterator[K, C](
     startPartition: Int,
     endPartition: Int,
     serializer: Serializer,
+    decompression: String,
     context: TaskContext,
     rssServers: ServerList,
     partitionFanout: Int,
@@ -139,6 +140,7 @@ class BlockDownloaderPartitionRangeRecordIterator[K, C](
           shuffleId,
           partition,
           serializer,
+          decompression,
           context,
           downloader,
           shuffleReadMetrics)
